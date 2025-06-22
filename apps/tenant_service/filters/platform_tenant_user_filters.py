@@ -1,0 +1,63 @@
+"""
+平台租户用户过滤器
+"""
+
+import django_filters
+from django.db.models import Q
+from apps.tenant_service.models import TenantUser
+
+
+class PlatformTenantUserFilter(django_filters.FilterSet):
+    """
+    平台租户用户过滤器类
+    
+    提供对租户用户关联的高级过滤功能（平台视图专用）
+    """
+    # 按用户名或邮箱搜索用户
+    user_search = django_filters.CharFilter(method='filter_user_search')
+    # 按角色过滤
+    role = django_filters.ChoiceFilter(choices=TenantUser.ROLE_CHOICES)
+    # 按创建时间过滤
+    created_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    # 按更新时间过滤
+    updated_after = django_filters.DateTimeFilter(field_name='updated_at', lookup_expr='gte')
+    updated_before = django_filters.DateTimeFilter(field_name='updated_at', lookup_expr='lte')
+    # 全局搜索
+    search = django_filters.CharFilter(method='filter_search')
+    
+    class Meta:
+        model = TenantUser
+        fields = {
+            'user_id': ['exact'],
+            'role': ['exact'],
+            'is_active': ['exact'],
+        }
+    
+    def filter_user_search(self, queryset, name, value):
+        """
+        按用户名或邮箱搜索用户
+        """
+        if not value:
+            return queryset
+        
+        return queryset.filter(
+            Q(user__username__icontains=value) |
+            Q(user__email__icontains=value) |
+            Q(user__first_name__icontains=value) |
+            Q(user__last_name__icontains=value)
+        )
+    
+    def filter_search(self, queryset, name, value):
+        """
+        全局搜索，匹配多个字段
+        """
+        if not value:
+            return queryset
+        
+        return queryset.filter(
+            Q(user__username__icontains=value) |
+            Q(user__email__icontains=value) |
+            Q(user__first_name__icontains=value) |
+            Q(user__last_name__icontains=value)
+        ) 

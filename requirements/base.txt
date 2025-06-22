@@ -1,0 +1,28 @@
+# Django核心
+Django>=5.0.0
+djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.3.0
+django-cors-headers>=4.3.1
+django-filter>=23.5
+django-environ>=0.11.2
+
+# 数据库
+mysqlclient>=2.2.0
+pymongo>=4.6.0
+
+# 缓存和异步任务
+redis>=5.0.0
+celery>=5.3.0
+django-redis>=5.4.0
+django-celery-results>=2.5.1
+
+# 支付
+python-alipay-sdk>=3.3.0
+
+# 工具
+Pillow>=10.0.0  # 图像处理
+pytz>=2023.3    # 时区支持
+pycryptodome>=3.19.0  # 加密
+requests>=2.31.0  # HTTP请求
+pyyaml>=6.0.1  # YAML支持
+python-dateutil>=2.8.2  # 日期处理
