@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+
+# 环境变量和敏感信息
+.env
+.env.*
+!.env.example
+.venv
+venv/
+ENV/
+
+# 证书和密钥
+*.pem
+*.key
+*.crt
+sciTigerCore/certs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# 其他
+node_modules/
+.coverage
+htmlcov/
+.pytest_cache/
