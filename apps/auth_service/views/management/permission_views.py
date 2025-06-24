@@ -5,6 +5,7 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.mixins import ResponseMixin
@@ -194,4 +195,18 @@ class ManagementPermissionViewSet(ResponseMixin, viewsets.ModelViewSet):
             return self.get_error_response(
                 "权限删除失败",
                 status_code=status.HTTP_400_BAD_REQUEST
-            ) 
+            )
+            
+    @action(detail=False, methods=['post'])
+    def import_default(self, request):
+        """
+        导入默认的系统权限
+        """
+        # 只允许超级管理员执行此操作
+        if not request.user.is_superuser:
+            return self.get_error_response("只有超级管理员可以导入默认权限", status_code=status.HTTP_403_FORBIDDEN)
+        
+        # 导入默认数据
+        stats = PermissionService.import_default_permissions()
+        
+        return self.get_success_response(stats, message="默认权限数据导入完成") 

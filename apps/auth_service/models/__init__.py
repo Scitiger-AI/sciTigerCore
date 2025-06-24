@@ -8,6 +8,7 @@ from .role import Role
 from .verification import UserVerification
 from .api_key import ApiKey, ApiKeyScope, ApiKeyUsageLog
 from .login_attempt import LoginAttempt
+from .service_scope import Service, Resource, Action
 
 __all__ = [
     'User',
@@ -18,4 +19,7 @@ __all__ = [
     'ApiKeyScope',
     'ApiKeyUsageLog',
     'LoginAttempt',
+    'Service',
+    'Resource',
+    'Action',
 ]

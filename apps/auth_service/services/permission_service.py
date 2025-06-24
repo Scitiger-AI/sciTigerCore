@@ -265,19 +265,421 @@ class PermissionService:
     @staticmethod
     def get_user_permissions(user_id):
         """
-        获取用户的所有权限
+        获取用户所有权限（包括通过角色继承的权限）
         
         Args:
             user_id: 用户ID
             
         Returns:
-            QuerySet: 权限查询集，如果用户不存在则返回None
+            QuerySet: 权限查询集
         """
         try:
             user = User.objects.get(id=user_id)
             
-            # 获取用户所有角色的权限
-            return Permission.objects.filter(roles__in=user.roles.all()).distinct()
+            # 获取用户直接关联的权限
+            direct_permissions = user.permissions.all()
+            
+            # 获取用户通过角色继承的权限
+            role_permissions = Permission.objects.filter(roles__users=user)
+            
+            # 合并权限并去重
+            return (direct_permissions | role_permissions).distinct()
         except User.DoesNotExist:
             logger.warning(f"Attempted to get permissions for non-existent user: {user_id}")
-            return None 
+            return Permission.objects.none()
+            
+    @classmethod
+    def import_default_permissions(cls):
+        """
+        导入默认的系统权限
+        
+        为各个服务的资源和操作创建默认的系统权限
+        
+        Returns:
+            Dict: 导入结果统计
+        """
+        # 默认权限列表
+        default_permissions = [
+            # 认证服务相关权限
+            {
+                "service": "auth_service", 
+                "resource": "users", 
+                "action": "create", 
+                "name": "创建用户",
+                "description": "允许创建新用户"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "users", 
+                "action": "read", 
+                "name": "查看用户",
+                "description": "允许查看用户信息"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "users", 
+                "action": "update", 
+                "name": "更新用户",
+                "description": "允许更新用户信息"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "users", 
+                "action": "delete", 
+                "name": "删除用户",
+                "description": "允许删除用户"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "users", 
+                "action": "list", 
+                "name": "列出用户",
+                "description": "允许查看用户列表"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "roles", 
+                "action": "create", 
+                "name": "创建角色",
+                "description": "允许创建新角色"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "roles", 
+                "action": "read", 
+                "name": "查看角色",
+                "description": "允许查看角色信息"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "roles", 
+                "action": "update", 
+                "name": "更新角色",
+                "description": "允许更新角色信息"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "roles", 
+                "action": "delete", 
+                "name": "删除角色",
+                "description": "允许删除角色"
+            },
+            {
+                "service": "auth_service", 
+                "resource": "roles", 
+                "action": "list", 
+                "name": "列出角色",
+                "description": "允许查看角色列表"
+            },
+            # 租户服务相关权限
+            {
+                "service": "tenant_service", 
+                "resource": "tenants", 
+                "action": "create", 
+                "name": "创建租户",
+                "description": "允许创建新租户"
+            },
+            {
+                "service": "tenant_service", 
+                "resource": "tenants", 
+                "action": "read", 
+                "name": "查看租户",
+                "description": "允许查看租户信息"
+            },
+            {
+                "service": "tenant_service", 
+                "resource": "tenants", 
+                "action": "update", 
+                "name": "更新租户",
+                "description": "允许更新租户信息"
+            },
+            {
+                "service": "tenant_service", 
+                "resource": "tenants", 
+                "action": "delete", 
+                "name": "删除租户",
+                "description": "允许删除租户"
+            },
+            {
+                "service": "tenant_service", 
+                "resource": "tenants", 
+                "action": "list", 
+                "name": "列出租户",
+                "description": "允许查看租户列表"
+            },
+            # 支付服务相关权限
+            {
+                "service": "payment_service", 
+                "resource": "orders", 
+                "action": "create", 
+                "name": "创建订单",
+                "description": "允许创建新订单"
+            },
+            {
+                "service": "payment_service", 
+                "resource": "orders", 
+                "action": "read", 
+                "name": "查看订单",
+                "description": "允许查看订单信息"
+            },
+            {
+                "service": "payment_service", 
+                "resource": "orders", 
+                "action": "update", 
+                "name": "更新订单",
+                "description": "允许更新订单信息"
+            },
+            {
+                "service": "payment_service", 
+                "resource": "orders", 
+                "action": "cancel", 
+                "name": "取消订单",
+                "description": "允许取消订单"
+            },
+            {
+                "service": "payment_service", 
+                "resource": "payments", 
+                "action": "create", 
+                "name": "创建支付",
+                "description": "允许创建新支付"
+            },
+            {
+                "service": "payment_service", 
+                "resource": "payments", 
+                "action": "read", 
+                "name": "查看支付",
+                "description": "允许查看支付信息"
+            },
+            # 日志服务相关权限
+            {
+                "service": "log_service", 
+                "resource": "system_logs", 
+                "action": "read", 
+                "name": "查看系统日志",
+                "description": "允许查看系统日志"
+            },
+            {
+                "service": "log_service", 
+                "resource": "operation_logs", 
+                "action": "read", 
+                "name": "查看操作日志",
+                "description": "允许查看操作日志"
+            },
+            {
+                "service": "log_service", 
+                "resource": "audit_logs", 
+                "action": "read", 
+                "name": "查看审计日志",
+                "description": "允许查看审计日志"
+            },
+            # 通知服务相关权限
+            {
+                "service": "notification_service", 
+                "resource": "messages", 
+                "action": "create", 
+                "name": "创建消息",
+                "description": "允许创建新消息"
+            },
+            {
+                "service": "notification_service", 
+                "resource": "messages", 
+                "action": "read", 
+                "name": "查看消息",
+                "description": "允许查看消息信息"
+            },
+            {
+                "service": "notification_service", 
+                "resource": "messages", 
+                "action": "update", 
+                "name": "更新消息",
+                "description": "允许更新消息状态"
+            },
+            {
+                "service": "notification_service", 
+                "resource": "templates", 
+                "action": "create", 
+                "name": "创建模板",
+                "description": "允许创建新通知模板"
+            },
+            {
+                "service": "notification_service", 
+                "resource": "templates", 
+                "action": "read", 
+                "name": "查看模板",
+                "description": "允许查看通知模板"
+            },
+            {
+                "service": "notification_service", 
+                "resource": "templates", 
+                "action": "update", 
+                "name": "更新模板",
+                "description": "允许更新通知模板"
+            },
+            # 文本模型调用服务相关权限
+            {
+                "service": "text_service", 
+                "resource": "tasks", 
+                "action": "create", 
+                "name": "创建文本任务",
+                "description": "允许创建文本生成任务"
+            },
+            {
+                "service": "text_service", 
+                "resource": "tasks", 
+                "action": "read", 
+                "name": "查看文本任务",
+                "description": "允许查看文本生成任务详情"
+            },
+            {
+                "service": "text_service", 
+                "resource": "tasks", 
+                "action": "list", 
+                "name": "列出文本任务",
+                "description": "允许查看文本生成任务列表"
+            },
+            {
+                "service": "text_service", 
+                "resource": "models", 
+                "action": "read", 
+                "name": "查看文本模型",
+                "description": "允许查看可用的文本模型"
+            },
+            {
+                "service": "text_service", 
+                "resource": "models", 
+                "action": "list", 
+                "name": "列出文本模型",
+                "description": "允许查看文本模型列表"
+            },
+            # 图像模型调用服务相关权限
+            {
+                "service": "image_service", 
+                "resource": "tasks", 
+                "action": "create", 
+                "name": "创建图像任务",
+                "description": "允许创建图像生成任务"
+            },
+            {
+                "service": "image_service", 
+                "resource": "tasks", 
+                "action": "read", 
+                "name": "查看图像任务",
+                "description": "允许查看图像生成任务详情"
+            },
+            {
+                "service": "image_service", 
+                "resource": "tasks", 
+                "action": "list", 
+                "name": "列出图像任务",
+                "description": "允许查看图像生成任务列表"
+            },
+            {
+                "service": "image_service", 
+                "resource": "models", 
+                "action": "read", 
+                "name": "查看图像模型",
+                "description": "允许查看可用的图像模型"
+            },
+            {
+                "service": "image_service", 
+                "resource": "models", 
+                "action": "list", 
+                "name": "列出图像模型",
+                "description": "允许查看图像模型列表"
+            },
+            # 视频模型调用服务相关权限
+            {
+                "service": "video_service", 
+                "resource": "tasks", 
+                "action": "create", 
+                "name": "创建视频任务",
+                "description": "允许创建视频生成任务"
+            },
+            {
+                "service": "video_service", 
+                "resource": "tasks", 
+                "action": "read", 
+                "name": "查看视频任务",
+                "description": "允许查看视频生成任务详情"
+            },
+            {
+                "service": "video_service", 
+                "resource": "tasks", 
+                "action": "list", 
+                "name": "列出视频任务",
+                "description": "允许查看视频生成任务列表"
+            },
+            {
+                "service": "video_service", 
+                "resource": "models", 
+                "action": "read", 
+                "name": "查看视频模型",
+                "description": "允许查看可用的视频模型"
+            },
+            {
+                "service": "video_service", 
+                "resource": "models", 
+                "action": "list", 
+                "name": "列出视频模型",
+                "description": "允许查看视频模型列表"
+            },
+            # 视频编辑服务相关权限
+            {
+                "service": "video_edit_service", 
+                "resource": "tasks", 
+                "action": "create", 
+                "name": "创建视频编辑任务",
+                "description": "允许创建视频编辑任务"
+            },
+            {
+                "service": "video_edit_service", 
+                "resource": "tasks", 
+                "action": "read", 
+                "name": "查看视频编辑任务",
+                "description": "允许查看视频编辑任务详情"
+            },
+            {
+                "service": "video_edit_service", 
+                "resource": "tasks", 
+                "action": "list", 
+                "name": "列出视频编辑任务",
+                "description": "允许查看视频编辑任务列表"
+            }
+        ]
+        
+        # 导入统计
+        stats = {
+            "created": 0,
+            "existed": 0,
+            "failed": 0
+        }
+        
+        # 创建权限
+        for permission_data in default_permissions:
+            # 生成权限代码
+            code = f"{permission_data['service']}:{permission_data['resource']}:{permission_data['action']}"
+            
+            # 检查权限是否已存在
+            existing_permission = cls.get_permission_by_code(code)
+            if existing_permission:
+                stats["existed"] += 1
+                continue
+            
+            try:
+                # 创建权限
+                cls.create_permission(
+                    name=permission_data["name"],
+                    service=permission_data["service"],
+                    resource=permission_data["resource"],
+                    action=permission_data["action"],
+                    description=permission_data.get("description"),
+                    is_system=True,
+                    is_tenant_level=False
+                )
+                
+                stats["created"] += 1
+            except Exception as e:
+                stats["failed"] += 1
+                logger.error(f"导入默认权限失败: {e}")
+        
+        return stats 

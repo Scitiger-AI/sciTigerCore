@@ -23,6 +23,10 @@ router.register(r'api-keys', api_key_views.ApiKeyManagementViewSet, basename='ma
 router.register(r'permissions', permission_views.ManagementPermissionViewSet, basename='management-permission')
 router.register(r'login-attempts', login_attempt_views.LoginAttemptManagementViewSet, basename='management-login-attempt')
 router.register(r'service-scopes', service_scope_views.ServiceScopeViewSet, basename='management-service-scope')
+# 新增服务范围相关路由
+router.register(r'services', service_scope_views.ServiceViewSet, basename='management-service')
+router.register(r'resources', service_scope_views.ResourceViewSet, basename='management-resource')
+router.register(r'actions', service_scope_views.ActionViewSet, basename='management-action')
 
 # 定义URL模式
 urlpatterns = [

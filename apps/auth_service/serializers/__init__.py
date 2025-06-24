@@ -51,6 +51,21 @@ from apps.auth_service.serializers.login_attempt_serializers import (
     LoginAttemptDetailSerializer
 )
 
+from apps.auth_service.serializers.service_scope_serializers import (
+    ServiceSerializer,
+    ServiceDetailSerializer,
+    ServiceCreateSerializer,
+    ServiceUpdateSerializer,
+    ResourceSerializer,
+    ResourceDetailSerializer,
+    ResourceCreateSerializer,
+    ResourceUpdateSerializer,
+    ActionSerializer,
+    ActionDetailSerializer,
+    ActionCreateSerializer,
+    ActionUpdateSerializer
+)
+
 __all__ = [
     # 权限序列化器
     'PermissionSerializer',
@@ -94,4 +109,18 @@ __all__ = [
     # 登录尝试序列化器
     'LoginAttemptSerializer',
     'LoginAttemptDetailSerializer',
+    
+    # 服务范围序列化器
+    'ServiceSerializer',
+    'ServiceDetailSerializer',
+    'ServiceCreateSerializer',
+    'ServiceUpdateSerializer',
+    'ResourceSerializer',
+    'ResourceDetailSerializer',
+    'ResourceCreateSerializer',
+    'ResourceUpdateSerializer',
+    'ActionSerializer',
+    'ActionDetailSerializer',
+    'ActionCreateSerializer',
+    'ActionUpdateSerializer',
 ]
